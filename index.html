@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💘</text></svg>">
+  <title>Our First Anniversary</title>
+  <style>
+    /* Variables y Reset */
+    :root {
+      --bg-dark: #0d050a;
+      --text-main: #ffffff;
+      --text-muted: #ffcccc;
+      --pink-glow: #ff6699;
+      --gradient-text: linear-gradient(90deg, #ffffff, #ffcccc, #ff6699, #ffffff);
+    }
+
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: var(--bg-dark);
+      /* Un fondo con un degradado radial muy sutil para dar profundidad */
+      background-image: radial-gradient(circle at 50% 50%, #200713 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Fondo de Patrones ASCII con Blur Sutil */
+    #heart-grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+      /* Desenfoque muy sutil */
+      filter: blur(0.4px);
+    }
+
+    /* Corazones ASCII con estrellas de colores */
+    .mini-heart-mask {
+      position: absolute;
+      text-shadow: 0 0 3px currentColor, 0 0 6px rgba(255, 102, 153, 0.4);
+      opacity: 0;
+      animation: pulseMiniHeart 5s infinite;
+    }
+
+    @keyframes pulseMiniHeart {
+      0%, 100% { opacity: 0; transform: scale(0.95) translateY(0); }
+      30%, 70% { opacity: 0.7; transform: scale(1) translateY(-6px); }
+    }
+
+    /* Cursor del efecto typewriter */
+    .typewriter-cursor {
+      border-right: 2px solid var(--pink-glow);
+      padding-right: 2px;
+    }
+
+    /* Pantallas */
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center; /* Centrar verticalmente */
+      width: 100%;
+      height: 100%; /* Ocupar toda la pantalla */
+      position: fixed; /* Ocupar toda la pantalla */
+      top: 0;
+      left: 0;
+      animation: fadeIn 0.8s ease forwards;
+      z-index: 10;
+      text-align: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tipografía */
+    .header {
+      font-size: 32px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .tagline {
+      font-size: 20px;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      background-size: 200% auto;
+      animation: shine 3s linear infinite;
+      margin-bottom: 30px;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    p {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .instruction {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 30px;
+      letter-spacing: 1px;
+    }
+
+    /* Botón Glass (adaptado para el fondo) */
+    .btn-primary {
+      background: rgba(255, 102, 153, 0.2);
+      border: 1px solid rgba(255, 102, 153, 0.5);
+      color: white;
+      padding: 15px 40px;
+      font-size: 18px;
+      font-family: inherit;
+      letter-spacing: 2px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(255, 102, 153, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: rgba(255, 102, 153, 0.4);
+      box-shadow: 0 0 25px rgba(255, 102, 153, 0.6);
+      transform: translateY(-2px);
+    }
+
+    /* Inputs de la contraseña (Glass) */
+    .code-input-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 30px;
+      width: 100%;
+    }
+
+    .code-box {
+      width: 38px;
+      height: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      color: white;
+      transition: all 0.2s ease;
+      text-transform: lowercase;
+    }
+
+    /* Feedback de escritura */
+    .code-box.filled {
+      border-color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Cursor parpadeante para saber dónde estamos */
+    .code-box.active-cursor {
+      border-color: var(--pink-glow);
+      box-shadow: 0 0 20px rgba(255, 102, 153, 0.5);
+      background: rgba(255, 102, 153, 0.08);
+      position: relative;
+    }
+
+    .code-box.active-cursor::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      width: 14px;
+      height: 2px;
+      background-color: var(--pink-glow);
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    #hidden-input {
+      position: absolute;
+      opacity: 0;
+      top: -1000px; /* Sacarlo de la vista totalmente */
+    }
+
+    /* Animación de Éxito */
+    .success-text {
+      color: #88ff88 !important;
+      text-shadow: 0 0 10px rgba(136, 255, 136, 0.5);
+    }
+
+    #countdown-display {
+      font-size: 48px;
+      font-weight: bold;
+      margin-top: 30px;
+      color: var(--pink-glow);
+      text-shadow: 0 0 20px var(--pink-glow);
+      display: none;
+    }
+
+    /* Estilos del video */
+    #screen-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000;
+      z-index: 100;
+      padding: 0;
+      display: none; /* Se activa con JS */
+      justify-content: center;
+      align-items: center;
+    }
+
+    #miVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #miAudio { display: none; }
+
+    /* Pantalla final */
+    #screen-end {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at 50% 50%, #200713 0%, var(--bg-dark) 100%);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    #screen-end.active {
+      display: flex;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    .love-text {
+      font-size: 42px;
+      font-weight: bold;
+      margin-top: 40px;
+      background: linear-gradient(90deg, #ff6699, #ff99bb, #ffffff, #ff6699);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      background-size: 200% auto;
+      animation: shine 3s linear infinite;
+      letter-spacing: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="heart-grid-overlay"></div>
+
+  <div id="screen-start" class="screen active">
+    <div class="header">ANNIVERSARY</div>
+    <div class="tagline">One Year of Us: The Best Adventure.</div>
+    <p>Our first year together has been amazing... click below to start our celebration.</p>
+    <button id="btn-start" class="btn-primary">START <3</button>
+    <div class="instruction">tap to begin our celebration</div>
+  </div>
+
+  <div id="screen-password" class="screen">
+    <div class="header">ANNIVERSARY</div>
+    <div class="tagline" id="password-tagline">Enter the magic code to see your special memory.</div>
+    <div class="instruction">Your favorite word, something of ours...</div>
+    
+    <div class="code-input-container" id="boxes-container">
+      </div>
+    
+    <div id="countdown-display">3</div>
+    
+    <input type="text" id="hidden-input" maxlength="17" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="instruction" id="type-instruction">Click anywhere to start typing.</div>
+  </div>
+
+  <div id="screen-video">
+    <video id="miVideo" playsinline muted controls>
+      <source src="video.mp4" type="video/mp4">
+    </video>
+    <audio id="miAudio">
+      <source src="music.mp3" type="audio/mp3">
+    </audio>
+  </div>
+
+  <div id="screen-end">
+    <div class="header" id="end-header"></div>
+    <div class="tagline" id="end-tagline"></div>
+    <p id="end-message"></p>
+    <button id="btn-replay" class="btn-primary" style="opacity:0;pointer-events:none;transition:opacity 0.6s ease;">PLAY AGAIN 💘</button>
+    <div class="love-text" id="end-love" style="opacity:0;transition:opacity 0.8s ease;"></div>
+  </div>
+
+  <script>
+    // --- Lógica del Fondo ASCII Iluminado y Elaborado ---
+    const gridOverlay = document.getElementById('heart-grid-overlay');
+
+    // Corazones ASCII con estrellas de colores (estilo mosaico)
+    function createElaborateHeartPattern() {
+      const heartRows = [
+        " ** ** ",
+        "*******",
+        "*******",
+        " ***** ",
+        "  ***  ",
+        "   *   "
+      ];
+      const colors = ['#ff6699', '#66ccff', '#ffcc44', '#ff4477', '#ffffff', '#ff99bb', '#44ddaa'];
+      const heartDiv = document.createElement('div');
+      heartDiv.classList.add('mini-heart-mask');
+      heartDiv.style.whiteSpace = "pre";
+      heartDiv.style.lineHeight = "1.1";
+      heartDiv.style.fontFamily = "'Courier New', monospace";
+      heartDiv.style.fontSize = "4px";
+      let html = '';
+      heartRows.forEach(row => {
+        for (let ch of row) {
+          if (ch === '*') {
+            const c = colors[Math.floor(Math.random() * colors.length)];
+            html += '<span style="color:' + c + '">*</span>';
+          } else {
+            html += ' ';
+          }
+        }
+        html += '\n';
+      });
+      heartDiv.innerHTML = html;
+      return heartDiv;
+    }
+
+    // Función para generar el fondo de cuadrícula y corazones elaborados
+    function generateHeartGrid() {
+      // 1. Fondo de cuadrícula de texto tenue (para textura)
+      const gridText = document.createElement('div');
+      gridText.style.position = 'absolute';
+      gridText.style.fontFamily = "'Courier New', monospace";
+      gridText.style.fontSize = '8px';
+      gridText.style.color = 'rgba(255, 255, 255, 0.03)'; /* Aún más tenue */
+      gridText.style.opacity = '0.08';
+      gridText.style.lineHeight = '1';
+      gridText.style.whiteSpace = 'pre';
+      let text = "";
+      const rows = 60; // Filas
+      const cols = 180; // Columnas
+      const chars = ".,-+"
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)];
+        }
+        text += "\n";
+      }
+      gridText.innerText = text;
+      gridOverlay.appendChild(gridText);
+
+      // 2. Colocar corazones elaborados iluminados y escalados
+      const numHearts = 50; // Más corazones pequeños
+      for (let i = 0; i < numHearts; i++) {
+        const heart = createElaborateHeartPattern();
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.top = Math.random() * 100 + 'vh';
+        // Desfasar animaciones
+        heart.style.animationDelay = Math.random() * 4 + 's';
+        gridOverlay.appendChild(heart);
+      }
+    }
+
+    // Generar el fondo al cargar
+    generateHeartGrid();
+
+    // --- Efecto Typewriter ---
+    function typeWriter(element, text, speed = 80) {
+      return new Promise(resolve => {
+        element.textContent = '';
+        element.classList.add('typewriter-cursor');
+        let i = 0;
+        function type() {
+          if (i < text.length) {
+            element.textContent += text[i];
+            i++;
+            const variation = speed + (Math.random() - 0.5) * speed * 0.4;
+            setTimeout(type, variation);
+          } else {
+            element.classList.remove('typewriter-cursor');
+            resolve();
+          }
+        }
+        type();
+      });
+    }
+
+    async function animateStartScreen() {
+      const header = document.querySelector('#screen-start .header');
+      const tagline = document.querySelector('#screen-start .tagline');
+      const para = document.querySelector('#screen-start p');
+      const btn = document.getElementById('btn-start');
+      const instruction = document.querySelector('#screen-start .instruction');
+
+      header.textContent = '';
+      tagline.textContent = '';
+      para.textContent = '';
+      btn.style.opacity = '0';
+      btn.style.pointerEvents = 'none';
+      btn.style.transition = 'opacity 0.6s ease';
+      instruction.style.opacity = '0';
+      instruction.style.transition = 'opacity 0.6s ease';
+
+      await new Promise(r => setTimeout(r, 600));
+      await typeWriter(header, 'ANNIVERSARY', 120);
+      await new Promise(r => setTimeout(r, 200));
+      await typeWriter(tagline, 'One Year of Us: The Best Adventure.', 50);
+      await new Promise(r => setTimeout(r, 200));
+      await typeWriter(para, 'Our first year together has been amazing... click below to start our celebration.', 50);
+      await new Promise(r => setTimeout(r, 200));
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      await new Promise(r => setTimeout(r, 400));
+      instruction.style.opacity = '1';
+    }
+
+    async function animatePasswordScreen() {
+      const header = document.querySelector('#screen-password .header');
+      const tagline = document.getElementById('password-tagline');
+      const hint = document.querySelector('#screen-password .instruction:not(#type-instruction)');
+      const typeInst = document.getElementById('type-instruction');
+      const boxes = document.getElementById('boxes-container');
+
+      header.textContent = '';
+      tagline.textContent = '';
+      if (hint) hint.textContent = '';
+      typeInst.style.opacity = '0';
+      typeInst.style.transition = 'opacity 0.5s ease';
+      boxes.style.opacity = '0';
+      boxes.style.transition = 'opacity 0.5s ease';
+
+      await new Promise(r => setTimeout(r, 400));
+      await typeWriter(header, 'ANNIVERSARY', 100);
+      await new Promise(r => setTimeout(r, 150));
+      await typeWriter(tagline, 'Enter the magic code to see our special memory.', 40);
+      await new Promise(r => setTimeout(r, 150));
+      if (hint) await typeWriter(hint, 'Your favorite word, something of ours...', 35);
+      await new Promise(r => setTimeout(r, 200));
+      boxes.style.opacity = '1';
+      await new Promise(r => setTimeout(r, 300));
+      typeInst.style.opacity = '1';
+    }
+
+    // Iniciar animación de la pantalla de inicio
+    animateStartScreen();
+
+    // --- Lógica de la Interfaz ---
+    const screenStart = document.getElementById('screen-start');
+    const screenPassword = document.getElementById('screen-password');
+    const screenVideo = document.getElementById('screen-video');
+    const btnStart = document.getElementById('btn-start');
+    const hiddenInput = document.getElementById('hidden-input');
+    const boxesContainer = document.getElementById('boxes-container');
+    const passwordTagline = document.getElementById('password-tagline');
+    const countdownDisplay = document.getElementById('countdown-display');
+    const typeInstruction = document.getElementById('type-instruction');
+    
+    const video = document.getElementById('miVideo');
+    const audio = document.getElementById('miAudio');
+
+    const correctPassword = "chiquilines1eraño";
+    const tempoInicioAudio = 30;
+
+    // Generar las 17 cajas
+    for (let i = 0; i < correctPassword.length; i++) {
+      const box = document.createElement('div');
+      box.classList.add('code-box');
+      if(i === 0) box.classList.add('active-cursor'); // Cursor inicial
+      boxesContainer.appendChild(box);
+    }
+    const codeBoxes = document.querySelectorAll('.code-box');
+
+    // Transición a la pantalla de contraseña
+    btnStart.addEventListener('click', () => {
+      screenStart.classList.remove('active');
+      screenPassword.classList.add('active');
+      animatePasswordScreen().then(() => {
+        hiddenInput.focus();
+      });
+    });
+
+    // Mantener el foco en el input al tocar la pantalla
+    screenPassword.addEventListener('click', () => {
+      hiddenInput.focus();
+    });
+
+    // Lógica al escribir
+    hiddenInput.addEventListener('input', (event) => {
+      const val = event.target.value.toLowerCase();
+      
+      codeBoxes.forEach((box, index) => {
+        // Limpiamos clases
+        box.classList.remove('filled', 'active-cursor');
+        
+        if (index < val.length) {
+          // Letra escrita
+          box.textContent = val[index];
+          box.classList.add('filled');
+        } else if (index === val.length) {
+          // Casilla actual (cursor)
+          box.textContent = "";
+          box.classList.add('active-cursor');
+        } else {
+          // Casillas vacías
+          box.textContent = "";
+        }
+      });
+
+      // Validación
+      if (val === correctPassword) {
+        hiddenInput.blur();
+        hiddenInput.disabled = true; // Evitar que siga escribiendo
+        
+        // Estilos de éxito
+        passwordTagline.textContent = "Access Granted! Preparing your surprise...";
+        passwordTagline.classList.add('success-text');
+        typeInstruction.style.display = 'none';
+        
+        // Limpiar casillas y mostrar corazones
+        codeBoxes.forEach(box => {
+          box.classList.remove('active-cursor');
+          box.style.borderColor = "#88ff88";
+          box.style.color = "#88ff88";
+          box.textContent = "<3";
+        });
+
+        startCountdownAndVideo();
+      }
+    });
+
+    // --- Cuenta Regresiva y Video ---
+    function startCountdownAndVideo() {
+      countdownDisplay.style.display = 'block';
+      let count = 3;
+      
+      const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownDisplay.textContent = count;
+        } else {
+          clearInterval(interval);
+          countdownDisplay.textContent = "GO!";
+          
+          setTimeout(() => {
+            // Ocultar pantallas y mostrar video
+            screenPassword.classList.remove('active');
+            screenVideo.style.display = 'flex';
+            
+            // Petición FullScreen
+            if (screenVideo.requestFullscreen) {
+              screenVideo.requestFullscreen();
+            } else if (screenVideo.webkitRequestFullscreen) {
+              screenVideo.webkitRequestFullscreen();
+            }
+            
+            video.play();
+          }, 500);
+        }
+      }, 1000);
+    }
+
+    // --- Sincronización de Audio/Video ---
+    let videoEnded = false;
+    video.addEventListener('loadedmetadata', () => {
+      audio.currentTime = tempoInicioAudio;
+    });
+    video.onseeking = () => audio.currentTime = video.currentTime + tempoInicioAudio;
+    video.onwaiting = () => { if (!videoEnded) audio.pause(); };
+    video.onplaying = () => { if (!videoEnded) audio.play(); };
+    video.onplay = () => { if (!videoEnded) audio.play(); };
+    video.onpause = () => { if (!videoEnded) audio.pause(); };
+
+    // --- Pantalla Final al terminar el video ---
+    const screenEnd = document.getElementById('screen-end');
+
+    video.addEventListener('ended', () => {
+      videoEnded = true;
+      // El audio sigue reproduciéndose solo
+      audio.play();
+      screenVideo.style.display = 'none';
+      if (document.fullscreenElement) document.exitFullscreen();
+      screenEnd.classList.add('active');
+      animateEndScreen();
+    });
+
+    async function animateEndScreen() {
+      const endHeader = document.getElementById('end-header');
+      const endTagline = document.getElementById('end-tagline');
+      const endMessage = document.getElementById('end-message');
+      const btnReplay = document.getElementById('btn-replay');
+      const endLove = document.getElementById('end-love');
+
+      await new Promise(r => setTimeout(r, 800));
+      await typeWriter(endHeader, 'THANK YOU', 120);
+      await new Promise(r => setTimeout(r, 300));
+      await typeWriter(endTagline, 'I hope you liked it...', 60);
+      await new Promise(r => setTimeout(r, 200));
+      await typeWriter(endMessage, 'This is just the beginning of our story.', 30);
+      await new Promise(r => setTimeout(r, 400));
+      btnReplay.style.opacity = '1';
+      btnReplay.style.pointerEvents = 'auto';
+      await new Promise(r => setTimeout(r, 600));
+      endLove.style.opacity = '1';
+      await typeWriter(endLove, 'I LOVE YOU 💘', 150);
+    }
+
+    // Replay
+    document.getElementById('btn-replay').addEventListener('click', () => {
+      videoEnded = false;
+      screenEnd.classList.remove('active');
+      screenVideo.style.display = 'flex';
+      video.currentTime = 0;
+      audio.currentTime = tempoInicioAudio;
+      video.play();
+    });
+
+  </script>
+</body>
+</html>
