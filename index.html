@@ -315,11 +315,11 @@
   </div>
 
   <div id="screen-video">
-    <video id="miVideo" playsinline muted controls>
+    <video id="miVideo" muted controls preload="auto">
       <source src="video.mp4" type="video/mp4">
     </video>
-    <audio id="miAudio">
-      <source src="music.mp3" type="audio/mp3">
+    <audio id="miAudio" preload="auto">
+      <source src="music.mp3#t=30" type="audio/mp3">
     </audio>
   </div>
 
@@ -445,7 +445,7 @@
       instruction.style.transition = 'opacity 0.6s ease';
 
       await new Promise(r => setTimeout(r, 600));
-      await typeWriter(header, 'ANNIVERSARY', 120);
+      await typeWriter(header, 'ANNIVERSARY a', 120);
       await new Promise(r => setTimeout(r, 200));
       await typeWriter(tagline, 'One Year of Us: The Best Adventure.', 50);
       await new Promise(r => setTimeout(r, 200));
@@ -589,8 +589,10 @@
             screenPassword.classList.remove('active');
             screenVideo.style.display = 'flex';
             
-            // Petición FullScreen
-            if (screenVideo.requestFullscreen) {
+            // Petición FullScreen (iOS solo permite fullscreen en el <video> directamente)
+            if (video.webkitEnterFullscreen) {
+              video.webkitEnterFullscreen();
+            } else if (screenVideo.requestFullscreen) {
               screenVideo.requestFullscreen();
             } else if (screenVideo.webkitRequestFullscreen) {
               screenVideo.webkitRequestFullscreen();
@@ -604,14 +606,42 @@
 
     // --- Sincronización de Audio/Video ---
     let videoEnded = false;
+
+    function getAudioTarget() {
+      return video.currentTime + tempoInicioAudio;
+    }
+
     video.addEventListener('loadedmetadata', () => {
-      audio.currentTime = tempoInicioAudio;
+      try { audio.currentTime = tempoInicioAudio; } catch(e) {}
     });
-    video.onseeking = () => audio.currentTime = video.currentTime + tempoInicioAudio;
+
+    video.onseeking = () => {
+      try { audio.currentTime = getAudioTarget(); } catch(e) {}
+    };
     video.onwaiting = () => { if (!videoEnded) audio.pause(); };
-    video.onplaying = () => { if (!videoEnded) audio.play(); };
-    video.onplay = () => { if (!videoEnded) audio.play(); };
+    video.onplaying = () => {
+      if (!videoEnded) {
+        try { audio.currentTime = getAudioTarget(); } catch(e) {}
+        audio.play();
+      }
+    };
+    video.onplay = () => {
+      if (!videoEnded) {
+        try { audio.currentTime = getAudioTarget(); } catch(e) {}
+        audio.play();
+      }
+    };
     video.onpause = () => { if (!videoEnded) audio.pause(); };
+
+    // iOS fix: corregir continuamente el audio hasta que esté sincronizado
+    // timeupdate se dispara ~4 veces/seg, corrige si está desviado
+    audio.addEventListener('timeupdate', () => {
+      if (videoEnded || video.paused) return;
+      const target = getAudioTarget();
+      if (Math.abs(audio.currentTime - target) > 1.5) {
+        audio.currentTime = target;
+      }
+    });
 
     // --- Pantalla Final al terminar el video ---
     const screenEnd = document.getElementById('screen-end');
@@ -620,10 +650,28 @@
       videoEnded = true;
       // El audio sigue reproduciéndose solo
       audio.play();
-      screenVideo.style.display = 'none';
+
+      // Salir de fullscreen (iOS y estándar)
+      if (video.webkitExitFullscreen) {
+        video.webkitExitFullscreen();
+      } else if (video.webkitExitFullScreen) {
+        video.webkitExitFullScreen();
+      }
       if (document.fullscreenElement) document.exitFullscreen();
+      if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+
+      screenVideo.style.display = 'none';
       screenEnd.classList.add('active');
       animateEndScreen();
+    });
+
+    // iOS: cuando sale del fullscreen nativo del video, mostrar pantalla final
+    video.addEventListener('webkitendfullscreen', () => {
+      if (video.ended && !screenEnd.classList.contains('active')) {
+        screenVideo.style.display = 'none';
+        screenEnd.classList.add('active');
+        animateEndScreen();
+      }
     });
 
     async function animateEndScreen() {
@@ -653,7 +701,9 @@
       screenEnd.classList.remove('active');
       screenVideo.style.display = 'flex';
       video.currentTime = 0;
-      audio.currentTime = tempoInicioAudio;
+      // Recargar audio desde el segundo 30 (iOS no respeta currentTime)
+      audio.src = 'music.mp3#t=' + tempoInicioAudio;
+      audio.load();
       video.play();
     });
 
